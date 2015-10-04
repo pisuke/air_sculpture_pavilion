@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Air Quality Pavilion</title>
+		<meta charset="utf-8">
+    <meta name="description" content="Air Quality Pavilion">
+    <meta name="keywords" content="HTML,CSS,XML,JavaScript">
+    <meta name="author" content="Francesco Anselmo">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body {
+				font-family: Monospace;
+				background-color: #000;
+				color: #fff;
+				margin: 0px;
+				overflow: hidden;
+			}
+			#info {
+				color: #fff;
+				position: absolute;
+				top: 10px;
+				width: 100%;
+				text-align: center;
+				z-index: 100;
+				display:block;
+			}
+			#info a, .button { color: #f00; font-weight: bold; text-decoration: underline; cursor: pointer }
+		</style>
+	</head>
+
+	<body>
+		<div id="info">
+		Air Quality Pavilion
+		</div>
+
+		<script src="js/three.min.js"></script>
+		<script src="js/loaders/OBJLoader.js"></script>
+    <script src="js/controls/OrbitControls.js"></script>
+    <script src="js/Detector.js"></script>
+    <script src="js/libs/stats.min.js"></script>
+
+    <script src="js/shaders/ConvolutionShader.js"></script>
+		<script src="js/shaders/CopyShader.js"></script>
+		<script src="js/shaders/FXAAShader.js"></script>
+
+		<script src="js/postprocessing/EffectComposer.js"></script>
+		<script src="js/postprocessing/MaskPass.js"></script>
+		<script src="js/postprocessing/RenderPass.js"></script>
+		<script src="js/postprocessing/ShaderPass.js"></script>
+		<script src="js/postprocessing/BloomPass.js"></script>
+
+    <script src='js/libs/dat.gui.min.js'></script>
+
+		<script>
+
+      if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+      var effectFXAA;
+
+			var container;
+
+			var camera, controls, scene, renderer;
+
+      var radius = 10, theta = 0;
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+
+			init();
+			animate();
+
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+        renderer = new THREE.WebGLRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				camera.position.x = 3;
+        camera.position.z = -3;
+        camera.position.z = 10;
+
+        controls = new THREE.OrbitControls( camera, renderer.domElement );
+				//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+				controls.enableDamping = true;
+				controls.dampingFactor = 0.05;
+				controls.enableZoom = true;
+
+
+				// scene
+
+				scene = new THREE.Scene();
+
+				var ambient = new THREE.AmbientLight( 0x101030 );
+				scene.add( ambient );
+
+				var directionalLight = new THREE.DirectionalLight( 0xffeedd );
+				directionalLight.position.set( 0, 0, 1 );
+				scene.add( directionalLight );
+
+        // lines
+
+        var points = [
+                      new THREE.Vector3(1.5886, -0.9565, 3.5908),
+                      new THREE.Vector3(-0.9787, -1.3714, 0.0113),
+
+                      new THREE.Vector3(1.8387, -0.6398, 3.7468),
+                      new THREE.Vector3(-0.7293, -1.5191, 0.0107),
+
+                      new THREE.Vector3(-2.3067, -0.0545, 4.4039),
+                      new THREE.Vector3(0.3413, 1.6894, 0.0398),
+
+                      new THREE.Vector3(-2.3409, -0.5204, 4.5550),
+                      new THREE.Vector3(0.0540, 1.7200, 0.0414),
+
+                      new THREE.Vector3(-1.3726, 1.3609, 3.7723),
+                      new THREE.Vector3(1.3292, 1.0996, 0.0362),
+
+                      new THREE.Vector3(-1.9769, 0.7776, 4.0876),
+                      new THREE.Vector3(0.8806, 1.4858, 0.0355),
+
+                      new THREE.Vector3(-1.8549, -1.8808, 4.9366),
+                      new THREE.Vector3(-0.7703, 1.5098, 0.0369),
+
+                      new THREE.Vector3(0.9541, -1.3851, 3.2856),
+                      new THREE.Vector3(-1.3852, -0.9613, 0.0134),
+
+                      new THREE.Vector3(-0.4803, 2.7780, 5.1455),
+                      new THREE.Vector3(1.6983, -0.2363, 0.0265),
+
+                      new THREE.Vector3(1.9323, 1.4769, 4.5270),
+                      new THREE.Vector3(0.6783, -1.5532, 0.0133),
+
+                      new THREE.Vector3(-0.9540, 2.6695, 5.1757),
+                      new THREE.Vector3(1.7167, 0.0524, 0.0291),
+
+                      new THREE.Vector3(-0.6660, -2.7122, 5.1502),
+                      new THREE.Vector3(-1.4031, 0.9332, 0.0312),
+
+                      new THREE.Vector3(0.4923, 2.6972, 5.0166),
+                      new THREE.Vector3(1.5176, -0.7841, 0.0215),
+
+                      new THREE.Vector3(1.6816, 1.8811, 4.6702),
+                      new THREE.Vector3(0.9346, -1.4176, 0.0150),
+
+                      new THREE.Vector3(1.3483, 2.2311, 4.8022),
+                      new THREE.Vector3(1.1642, -1.2407, 0.0169),
+
+                      new THREE.Vector3(1.6141, 0.6147, 0.0235),
+                      new THREE.Vector3(-0.6415, 1.6652, 3.4483),
+
+                      new THREE.Vector3(-0.1901, -2.8078, 5.1756),
+                      new THREE.Vector3(-1.5395, 0.6795, 0.0290),
+
+                      new THREE.Vector3(2.1348, 0.1481, 4.0627),
+                      new THREE.Vector3(-0.1740, -1.6785, 0.0106),
+
+                      new THREE.Vector3(0.0093, 2.7882, 5.0926),
+                      new THREE.Vector3(1.6314, -0.5178, 0.0240),
+
+                      new THREE.Vector3(1.1171, 1.3186, 0.0329),
+                      new THREE.Vector3(-1.7044, 1.1115, 3.9268),
+
+                      new THREE.Vector3(-0.2618, 1.6884, 3.2924),
+                      new THREE.Vector3(1.6928, 0.3352, 0.0202),
+
+                      new THREE.Vector3(2.0925, 1.0394, 4.3760),
+                      new THREE.Vector3(0.4027, -1.6434, 0.0120),
+
+                      new THREE.Vector3(-1.0129, 1.5471, 3.6138),
+                      new THREE.Vector3(1.4962, 0.8631, 0.0343),
+
+                      new THREE.Vector3(2.1594, 0.5897, 4.2205),
+                      new THREE.Vector3(0.1158, -1.6855, 0.0111),
+
+                      new THREE.Vector3(1.3604, -1.0274, 0.0191),
+                      new THREE.Vector3(0.9458, 2.5082, 4.9188),
+
+                      new THREE.Vector3(-2.1820, 0.3840, 4.2472),
+                      new THREE.Vector3(0.6195, 1.6106, 0.0379),
+
+                      new THREE.Vector3(1.2887, -1.2073, 3.4370),
+                      new THREE.Vector3(-1.1994, -1.1836, 0.0122),
+
+                      new THREE.Vector3(-2.2685, -1.0063, 4.6944),
+                      new THREE.Vector3(-0.2242, 1.6883, 0.0391),
+
+                      new THREE.Vector3(-2.1082, -1.4628, 4.8234),
+                      new THREE.Vector3(-0.5049, 1.6222, 0.0382),
+
+                      new THREE.Vector3(-1.5190, -2.2393, 5.0303),
+                      new THREE.Vector3(-1.0129, 1.3543, 0.0352),
+
+                      new THREE.Vector3(-0.4585, -1.6225, 0.0105),
+                      new THREE.Vector3(2.0248, -0.2671, 3.9043),
+
+                      new THREE.Vector3(-1.1161, -2.5206, 5.1019),
+                      new THREE.Vector3(-1.2259, 1.1603, 0.0333),
+
+                    ],
+        		colors = [];
+
+/*
+
+new THREE.Vector3( -2.80778,5.1756,-0.19011 ),
+          new THREE.Vector3( 0.67949,0.02896,-1.53955 )
+
+
+*/
+
+        for ( var i = 0; i < points.length/2; i += 2) {
+          geometry = new THREE.Geometry()
+          geometry.vertices.push( points[i].clone() );
+          geometry.vertices.push( points[i+1].clone() );
+          var object;
+          object = new THREE.Line( geometry );
+          object.material.linewidth = 5;
+          object.rotation.x=-Math.PI/2;
+          scene.add( object );
+        }
+
+
+				// texture
+
+				var manager = new THREE.LoadingManager();
+				manager.onProgress = function ( item, loaded, total ) {
+
+					console.log( item, loaded, total );
+
+				};
+
+				var texture = new THREE.Texture();
+
+				var onProgress = function ( xhr ) {
+					if ( xhr.lengthComputable ) {
+						var percentComplete = xhr.loaded / xhr.total * 100;
+						console.log( Math.round(percentComplete, 2) + '% downloaded' );
+					}
+				};
+
+				var onError = function ( xhr ) {
+				};
+
+        /*
+				var loader = new THREE.ImageLoader( manager );
+				loader.load( 'img/UV_Grid_Sm.jpg', function ( image ) {
+
+					texture.image = image;
+					texture.needsUpdate = true;
+
+				} );
+        */
+
+				// model
+
+				var loader = new THREE.OBJLoader( manager );
+				loader.load( 'obj/rods.obj', function ( object ) {
+					object.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							//child.material.map = texture;
+						}
+					} );
+					//object.position.y = - 80;
+					scene.add( object );
+				}, onProgress, onError );
+
+        var loader = new THREE.OBJLoader( manager );
+				loader.load( 'obj/ground.obj', function ( object ) {
+					object.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							//child.material.map = texture;
+						}
+					} );
+					//object.position.y = - 80;
+					scene.add( object );
+				}, onProgress, onError );
+
+        var loader = new THREE.OBJLoader( manager );
+				loader.load( 'obj/led.obj', function ( object ) {
+					object.traverse( function ( child ) {
+						if ( child instanceof THREE.Mesh ) {
+							//child.material.map = texture;
+						}
+					} );
+					//object.position.y = - 80;
+					scene.add( object );
+				}, onProgress, onError );
+
+				//
+
+
+
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, false );
+
+        setupGui();
+			}
+
+      function setupGui() {
+
+      				effectController = {
+
+      					control: true,
+
+      				};
+
+      				var h;
+
+      				var gui = new dat.GUI();
+
+      				// movement
+
+      				//h = gui.addFolder( "Movement control" );
+      				//h.add( effectController, "control" ).onChange( render );
+
+              h = gui.add( effectController, "control" ).name( "Automatic motion" ).onChange( render );
+              gui.width = 300;
+
+      				// material (color)
+
+      			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onDocumentMouseMove( event ) {
+
+				mouseX = ( event.clientX - windowHalfX ) / 2;
+				mouseY = ( event.clientY - windowHalfY ) / 2;
+
+			}
+
+			//
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+        controls.update(); // required if controls.enableDamping = true, or if controls.autoRotate = true
+				render();
+
+			}
+
+			function render() {
+
+				//camera.position.x += ( mouseX - camera.position.x ) * .05;
+				//camera.position.y += ( - mouseY - camera.position.y ) * .05;
+
+
+        var point = new THREE.Vector3(0,2,0);
+        camera.lookAt( point );
+				//camera.lookAt( scene.position );
+
+        if ( effectController.control )
+				{
+
+          theta += 0.1;
+
+  				camera.position.x = radius * Math.sin( THREE.Math.degToRad( theta ) );
+  				camera.position.y = radius * Math.sin( THREE.Math.degToRad( theta ) );
+  				camera.position.z = radius * Math.cos( THREE.Math.degToRad( theta ) );
+
+  				camera.updateMatrixWorld();
+
+				}
+
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+
+	</body>
+</html>
