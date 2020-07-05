@@ -1,0 +1,26 @@
+{
+  "name": "air_sculpture_pavilion",
+  "version": "1.0.0",
+  "description": "3D visualisation of the Aria sculpture pavilion",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pisuke/air_sculpture_pavilion.git"
+  },
+  "keywords": [],
+  "author": "DaeWha Kang, Francesco Anselmo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pisuke/air_sculpture_pavilion/issues"
+  },
+  "homepage": "https://github.com/pisuke/air_sculpture_pavilion#readme",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
